@@ -1,0 +1,21 @@
+[project]
+name = "climate-elt-airflow"
+version = "0.1.0"
+description = "Airflow-orchestrated daily ELT of weather and air-quality data into DuckDB"
+requires-python = ">=3.10"
+dependencies = ["duckdb>=1.1", "requests>=2.31"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "tests"]
+testpaths = ["tests"]
+addopts = "-p no:cacheprovider"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["climate_elt", "conftest"]
