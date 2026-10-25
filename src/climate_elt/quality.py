@@ -43,6 +43,20 @@ def run_checks(
             )
         )
 
+    for table, key in (
+        ("raw_weather_hourly", "city, ts"),
+        ("raw_air_quality_hourly", "city, ts"),
+        ("daily_city_metrics", "date, city"),
+    ):
+        date_col = "date" if table == "daily_city_metrics" else "CAST(ts AS DATE)"
+        dupes = _scalar(
+            con,
+            f"SELECT count(*) - count(DISTINCT ({key})) FROM {table} "
+            f"WHERE {date_col} = CAST(? AS DATE)",
+            [day],
+        )
+        results.append(CheckResult(f"{table}:unique_key", dupes == 0, f"{dupes} duplicates"))
+
     metric_cities = {
         r[0]
         for r in con.execute(

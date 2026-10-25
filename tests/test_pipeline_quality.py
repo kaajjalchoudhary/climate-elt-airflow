@@ -47,3 +47,11 @@ def test_quality_catches_mostly_null_temperatures(tmp_path, cities):
         build_daily_metrics(con, DAY)
         names = {r.name for r in run_checks(con, DAY, ["alpha", "beta"]) if not r.passed}
     assert names == {"temperature_null_ratio_below_10pct"}
+
+
+def test_quality_catches_duplicate_rows(tmp_path, cities, fake_fetch):
+    run_day(DAY, tmp_path, tmp_path / "wh.duckdb", cities, fake_fetch)
+    with duckdb.connect(str(tmp_path / "wh.duckdb")) as con:
+        con.execute("INSERT INTO raw_weather_hourly SELECT * FROM raw_weather_hourly LIMIT 1")
+        failed = {r.name for r in run_checks(con, DAY, ["alpha", "beta"]) if not r.passed}
+    assert "raw_weather_hourly:unique_key" in failed

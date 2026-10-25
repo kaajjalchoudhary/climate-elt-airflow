@@ -21,8 +21,7 @@ CREATE TABLE IF NOT EXISTS daily_city_metrics (
     avg_no2                DOUBLE,
     hours_pm25_above_who   INTEGER,
     pm25_aqi_category      VARCHAR,
-    built_at               TIMESTAMPTZ NOT NULL,
-    PRIMARY KEY (date, city)
+    built_at               TIMESTAMPTZ NOT NULL
 )
 """
 

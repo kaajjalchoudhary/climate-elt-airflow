@@ -15,12 +15,15 @@ TABLES = {
 
 
 def ensure_raw_tables(con: duckdb.DuckDBPyConnection) -> None:
+    # No PRIMARY KEY on purpose: DuckDB checks constraints eagerly, so deleting and re-inserting
+    # the same keys inside one transaction fails. Uniqueness of (city, ts) is enforced by a data
+    # quality check instead, which keeps the day-level replace atomic.
     for table, variables in TABLES.values():
         cols = ", ".join(f"{v} DOUBLE" for v in variables)
         con.execute(
             f"CREATE TABLE IF NOT EXISTS {table} ("
             f"city VARCHAR NOT NULL, ts TIMESTAMP NOT NULL, {cols}, "
-            f"extracted_at TIMESTAMPTZ NOT NULL, PRIMARY KEY (city, ts))"
+            f"extracted_at TIMESTAMPTZ NOT NULL)"
         )
 
 
