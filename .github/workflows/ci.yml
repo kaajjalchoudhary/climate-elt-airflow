@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 6 * * 1"   # weekly live run against the Open-Meteo API
+
+env:
+  AIRFLOW_VERSION: "3.1.2"
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Lint
+        run: ruff check .
+      - name: Unit tests (offline, fake API)
+        run: pytest -v
+
+  airflow:
+    needs: unit
+    runs-on: ubuntu-latest
+    env:
+      AIRFLOW_HOME: ${{ github.workspace }}/.airflow
+      AIRFLOW__CORE__DAGS_FOLDER: ${{ github.workspace }}/dags
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      PYTHONPATH: ${{ github.workspace }}/src
+      CLIMATE_DATA_DIR: ${{ github.workspace }}/data
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install Airflow (with official constraints)
+        run: |
+          pip install "apache-airflow==${AIRFLOW_VERSION}" \
+            --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+          pip install duckdb==1.1.3 pytest==8.3.3
+      - name: Initialise metadata DB
+        run: airflow db migrate
+      - name: DAG integrity tests
+        run: pytest -v tests/test_dag.py
+      - name: Run the DAG end to end against the live API
+        run: airflow dags test climate_daily 2024-06-08
+      - name: Show the mart
+        run: python -m climate_elt.report --min-cities 6
