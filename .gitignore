@@ -1,0 +1,10 @@
+data/
+.airflow/
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ruff_cache/
+.DS_Store
+.idea/
+.vscode/
