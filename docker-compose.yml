@@ -1,0 +1,18 @@
+# Single-container Airflow for local development (standalone mode: scheduler, API server,
+# DAG processor and triggerer in one container). The UI is on http://localhost:8080 and the
+# generated admin password is printed in the container logs.
+services:
+  airflow:
+    image: apache/airflow:3.1.2-python3.11
+    command: standalone
+    ports:
+      - "8080:8080"
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      PYTHONPATH: /opt/airflow/src
+      CLIMATE_DATA_DIR: /opt/airflow/data
+      _PIP_ADDITIONAL_REQUIREMENTS: "duckdb==1.1.3"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./src:/opt/airflow/src
+      - ./data:/opt/airflow/data
