@@ -123,3 +123,7 @@ The workflow also runs weekly on a schedule, so API or dependency drift shows up
 - Swap DuckDB for a cloud warehouse (BigQuery / Snowflake) via an Airflow connection
 - Store the landing zone in object storage (S3 / GCS) using Airflow's ObjectStoragePath
 - Publish `daily_city_metrics` as an Airflow Asset to trigger downstream DAGs
+
+## License
+
+MIT, see [LICENSE](LICENSE).
